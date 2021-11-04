@@ -14,6 +14,10 @@ class MdLinkTester:
     The search string for URLs on a markdown page.
     """
     SEARCH_STRING: str = r"\[(.*?)\]\((.*?)\)"
+    """:class_var
+    Status codes that indicate a valid link.
+    """
+    GOOD_STATUS_CODES: List[int] = [200, 302]
 
     @staticmethod
     def test_directory(path: Union[str, Path], ignore_files: List[str] = None) -> Dict[str, List[str]]:
@@ -56,13 +60,27 @@ class MdLinkTester:
 
         if isinstance(path, str):
             path = Path(path)
-        txt = path.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8")
         # Switch to this path's directory.
         cwd = os.getcwd()
         d = str(path.parent.resolve())
         os.chdir(d)
+        bad_links = MdLinkTester.test_text(text=text)
+        os.chdir(cwd)
+        return bad_links
+
+    @staticmethod
+    def test_text(text: str) -> List[str]:
+        """
+        Test all links in a body of text.
+
+        :param text: The text.
+
+        :return: A list of broken links.
+        """
+
         # Get each link in the document.
-        links = re.findall(MdLinkTester.SEARCH_STRING, txt, flags=re.MULTILINE)
+        links = re.findall(MdLinkTester.SEARCH_STRING, text, flags=re.MULTILINE)
         # Get all of the links from the tuple. Ignore email addresses.
         links: List[str] = [link[1] for link in links if "@" not in link[1]]
         # Record all bad links.
@@ -72,7 +90,7 @@ class MdLinkTester:
             if link.startswith("http"):
                 try:
                     resp = head(link)
-                    if resp.status_code != 200:
+                    if resp.status_code not in MdLinkTester.GOOD_STATUS_CODES:
                         bad_links.append(link)
                 except ConnectTimeout:
                     bad_links.append(link)
@@ -88,5 +106,4 @@ class MdLinkTester:
                         bad_links.append(link)
                 except AttributeError:
                     bad_links.append(link)
-        os.chdir(cwd)
         return bad_links

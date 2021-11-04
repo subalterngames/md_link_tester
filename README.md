@@ -46,3 +46,14 @@ for f in files_with_bad_links:
     for link in files_with_bad_links[f]:
         print("\t", link)
 ```
+
+To test the links of a body of text:
+
+```python
+from pathlib import Path
+from md_link_tester import MdLinkTester
+
+text = Path("doc/test.md").read_text()
+bad_links = MdLinkTester.test_text(text=text)
+print(bad_links)
+```
