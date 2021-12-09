@@ -1,3 +1,4 @@
+from time import sleep
 from typing import List, Dict, Union
 import os
 from pathlib import Path
@@ -17,7 +18,7 @@ class MdLinkTester:
     """:class_var
     Status codes that indicate a valid link.
     """
-    GOOD_STATUS_CODES: List[int] = [200, 302]
+    GOOD_STATUS_CODES: List[int] = [200, 301, 302]
 
     @staticmethod
     def test_directory(path: Union[str, Path], ignore_files: List[str] = None) -> Dict[str, List[str]]:
@@ -90,6 +91,12 @@ class MdLinkTester:
             if link.startswith("http"):
                 try:
                     resp = head(link)
+                    if resp.status_code == 429:
+                        if "Retry-After" in resp.headers:
+                            sleep(float(resp.headers["Retry-After"]))
+                        else:
+                            sleep(60)
+                        resp = head(link)
                     if resp.status_code not in MdLinkTester.GOOD_STATUS_CODES:
                         bad_links.append(link)
                 except ConnectTimeout:
@@ -98,7 +105,9 @@ class MdLinkTester:
                     bad_links.append(link)
             else:
                 try:
-                    if "#" in link:
+                    if link.startswith("#"):
+                        continue
+                    elif "#" in link:
                         link_no_header = re.search(r"((.*)\.md)", link).group(1)
                     else:
                         link_no_header = link

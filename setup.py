@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='md_link_tester',
-    version="1.0.0",
+    version="1.1.0",
     description='High-level API for the Magnebot in TDW.',
     long_description=Path('README.md').read_text(encoding='utf-8'),
     long_description_content_type='text/markdown',
