@@ -96,7 +96,7 @@ class MdLinkTester:
                             sleep(float(resp.headers["Retry-After"]))
                         else:
                             sleep(60)
-                        resp = head(link)
+                        resp = head(link, verify=link.startswith("https"))
                     if resp.status_code not in MdLinkTester.GOOD_STATUS_CODES:
                         bad_links.append(link)
                 except ConnectTimeout:

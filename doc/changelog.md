@@ -1,3 +1,7 @@
+### 1.1.1
+
+- Don't try to verify `http://` links
+
 ### 1.1.0
 
 - On a 429 error, `MdLinkTester` will wait and retry the connection.
